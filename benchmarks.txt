@@ -1,0 +1,18 @@
+=== RUN TestAddNodeAndWalk
+--- PASS: TestAddNodeAndWalk (0.00 seconds)
+=== RUN TestSearch
+--- PASS: TestSearch (0.00 seconds)
+=== RUN TestSearchInsensitive
+--- PASS: TestSearchInsensitive (0.00 seconds)
+PASS
+BenchmarkSearch5	20000000	       104 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch10	10000000	       174 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch20	 5000000	       359 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch40	 5000000	       684 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch80	 1000000	      1406 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive5	10000000	       168 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive10	10000000	       240 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive20	 5000000	       424 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive40	 5000000	       736 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive80	 1000000	      1458 ns/op	       0 B/op	       0 allocs/op
+ok  	github.com/jasonmoo/trex	24.781s
