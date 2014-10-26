@@ -1,6 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
+	"io/ioutil"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -35,18 +40,24 @@ func TestAddNodeAndWalk(t *testing.T) {
 
 	root = NewNode()
 
+	var i int
 	for term, flags := range TestWords {
-		root.Add(NewTerm(term, flags))
+		t := NewToken(term, i)
+		t.SetFlags(flags)
+		i++
+		root.Add(t)
 	}
 
 	root.Walk(func(n *Node) error {
 
-		for _, term := range n.Terms {
-			flags, exists := TestWords[term.Text]
+		// fmt.Printf("%#v\n", n)
+
+		for _, token := range n.Tokens {
+			flags, exists := TestWords[token.Text]
 			if !exists {
-				t.Errorf("Expected exists, got not exists for %s", term.Text)
-			} else if flags != term.Flags {
-				t.Errorf("Expected %s, got %s on flags for %s", strconv.FormatUint(flags, 2), strconv.FormatUint(term.Flags, 2), term.Text)
+				t.Errorf("Expected exists, got not exists for %s", token.Text)
+			} else if flags != token.Flags {
+				t.Errorf("Expected %s, got %s on flags for %s", strconv.FormatUint(flags, 2), strconv.FormatUint(token.Flags, 2), token.Text)
 			}
 		}
 
@@ -55,65 +66,85 @@ func TestAddNodeAndWalk(t *testing.T) {
 
 }
 
+// func TestWaht(t *testing.T) {
+
+// 	var line = "three fLAgs have flagged \nin the fucking Flag "
+
+// 	lex := NewLexer(strings.NewReader(line), root)
+// 	lex.CaseInsensitive = true
+// 	lex.EmitUnmatchedTokens = true
+
+// 	for lex.Lex() {
+// 		fmt.Printf("%#v\n", lex.Token())
+// 	}
+
+// 	if lex.Error() != nil {
+// 		log.Fatal(lex.Error())
+// 	}
+
+// 	os.Exit(0)
+
+// }
+
 func TestSearch(t *testing.T) {
 
 	var (
 		line     = "three flags have flagged \nin the fucking Flag "
-		expected = []*Term{
-			&Term{Text: "three flags", Flags: 0x7},
-			&Term{Text: " ", Flags: 0x0},
-			nil,
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			&Term{Text: "flag", Flags: 0x1},
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			&Term{Text: "\n", Flags: 0x0},
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			&Term{Text: "Flag", Flags: 0x2},
-			&Term{Text: " ", Flags: 0x0},
+		expected = []*Token{
+			&Token{Matched: true, Position: 1, Text: "three flags", Flags: 0x7},
+			&Token{Matched: true, Position: 4, Text: " ", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "h", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "a", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "v", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "e", Flags: 0x0},
+			&Token{Matched: true, Position: 4, Text: " ", Flags: 0x0},
+			&Token{Matched: true, Position: 2, Text: "flag", Flags: 0x1},
+			&Token{Matched: false, Position: 0, Text: "g", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "e", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "d", Flags: 0x0},
+			&Token{Matched: true, Position: 4, Text: " ", Flags: 0x0},
+			&Token{Matched: true, Position: 3, Text: "\n", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "i", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "n", Flags: 0x0},
+			&Token{Matched: true, Position: 4, Text: " ", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "t", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "h", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "e", Flags: 0x0},
+			&Token{Matched: true, Position: 4, Text: " ", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "f", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "u", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "c", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "k", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "i", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "n", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "g", Flags: 0x0},
+			&Token{Matched: true, Position: 4, Text: " ", Flags: 0x0},
+			&Token{Matched: true, Position: 6, Text: "Flag", Flags: 0x2},
 		}
 	)
 
-	for _, expectedTerm := range expected {
-		term, err := root.Search(line)
-		if err != nil && err != NonMatchError {
-			t.Error(err)
-		}
+	lex := NewLexer(strings.NewReader(line), root)
+	// lex.CaseInsensitive = true
+	lex.EmitUnmatchedTokens = true
 
-		if expectedTerm == nil {
-			if term != nil {
-				t.Errorf("expected: %#v, got: %#v\n", expectedTerm, term)
-			}
-		} else if expectedTerm.Text != term.Text {
-			t.Errorf("expected: %#v, got: %#v\n", expectedTerm, term)
-		} else if expectedTerm.Flags != term.Flags {
-			t.Errorf("expected: %#v, got: %#v\n", expectedTerm, term)
+	for _, expectedToken := range expected {
+		if !lex.Lex() {
+			t.Error("Unable to lex enough tokens from string for test")
+			break
 		}
+		token := lex.Token()
 
-		if term == nil {
-			line = line[1:]
-		} else {
-			line = line[len(term.Text):]
+		if expectedToken.Text != token.Text {
+			t.Errorf("expected text: %v, got: %v\n", expectedToken.Text, token.Text)
+		} else if expectedToken.Matched != token.Matched {
+			t.Errorf("expected matched: %v, got: %v\n", expectedToken.Matched, token.Matched)
+		} else if expectedToken.Flags != token.Flags {
+			t.Errorf("expected flags: %v, got: %v\n", expectedToken.Flags, token.Flags)
 		}
+	}
+
+	if lex.Error() != nil {
+		t.Error(lex.Error())
 	}
 
 }
@@ -121,65 +152,121 @@ func TestSearch(t *testing.T) {
 func TestSearchInsensitive(t *testing.T) {
 
 	var (
-		line     = "three Three FLAGS Flagged \nin the fucking flag "
-		expected = []*Term{
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			&Term{Text: "three flags", Flags: 0x7},
-			&Term{Text: " ", Flags: 0x0},
-			&Term{Text: "Flag", Flags: 0x2},
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			&Term{Text: "\n", Flags: 0x0},
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			&Term{Text: " ", Flags: 0x0},
-			&Term{Text: "flag", Flags: 0x1},
+		line     = "three fLAgs have flagged \nin the fucking Flag "
+		expected = []*Token{
+			&Token{Matched: true, Position: 0, Text: "three flags", Flags: 0x7},
+			&Token{Matched: true, Position: 7, Text: " ", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "h", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "a", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "v", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "e", Flags: 0x0},
+			&Token{Matched: true, Position: 7, Text: " ", Flags: 0x0},
+			&Token{Matched: true, Position: 5, Text: "flag", Flags: 0x1},
+			&Token{Matched: false, Position: 0, Text: "g", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "e", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "d", Flags: 0x0},
+			&Token{Matched: true, Position: 7, Text: " ", Flags: 0x0},
+			&Token{Matched: true, Position: 1, Text: "\n", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "i", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "n", Flags: 0x0},
+			&Token{Matched: true, Position: 7, Text: " ", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "t", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "h", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "e", Flags: 0x0},
+			&Token{Matched: true, Position: 7, Text: " ", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "f", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "u", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "c", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "k", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "i", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "n", Flags: 0x0},
+			&Token{Matched: false, Position: 0, Text: "g", Flags: 0x0},
+			&Token{Matched: true, Position: 7, Text: " ", Flags: 0x0},
+			&Token{Matched: true, Position: 6, Text: "Flag", Flags: 0x2},
 		}
 	)
 
-	for _, expectedTerm := range expected {
-		term, err := root.SearchInsensitive(line)
-		if err != nil && err != NonMatchError {
-			t.Error(err)
+	lex := NewLexer(strings.NewReader(line), root)
+	lex.CaseInsensitive = true
+	lex.EmitUnmatchedTokens = true
+
+	for _, expectedToken := range expected {
+		if !lex.Lex() {
+			t.Error("Unable to lex enough tokens from string for test")
+			break
 		}
+		token := lex.Token()
 
-		// fmt.Printf("%#v\n", term)
-
-		if expectedTerm == nil {
-			if term != nil {
-				t.Errorf("expected: %#v, got: %#v\n", expectedTerm, term)
-			}
-		} else if strings.ToLower(expectedTerm.Text) != strings.ToLower(term.Text) {
-			t.Errorf("expected: %#v, got: %#v\n", expectedTerm, term)
-		} else if expectedTerm.Flags != term.Flags {
-			t.Errorf("expected: %#v, got: %#v\n", expectedTerm, term)
-		}
-
-		if term == nil {
-			line = line[1:]
-		} else {
-			line = line[len(term.Text):]
+		if expectedToken.Text != token.Text {
+			t.Errorf("expected text: %v, got: %v\n", expectedToken.Text, token.Text)
+		} else if expectedToken.Matched != token.Matched {
+			t.Errorf("expected matched: %v, got: %v\n", expectedToken.Matched, token.Matched)
+		} else if expectedToken.Flags != token.Flags {
+			t.Errorf("expected flags: %v, got: %v\n", expectedToken.Flags, token.Flags)
 		}
 	}
+
+	if lex.Error() != nil {
+		t.Error(lex.Error())
+	}
+
+}
+
+func BenchmarkLexerAllHit(b *testing.B) {
+
+	file, err := os.Open("/usr/share/dict/words")
+	if err != nil {
+		log.Fatal(err)
+	}
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Close()
+
+	words := NewNode()
+	words.Add(NewToken("\n", 0))
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+
+	for i := 0; scanner.Scan(); i++ {
+		words.Add(NewToken(scanner.Text(), i))
+	}
+
+	file.Seek(0, os.SEEK_SET)
+
+	lex := NewLexer(bytes.NewReader(data), words)
+
+	b.ResetTimer()
+
+	var i int
+	for ; lex.Lex(); i++ {
+	}
+
+	b.N = i
+
+}
+
+func BenchmarkLexerAllMiss(b *testing.B) {
+
+	file, err := os.Open("/usr/share/dict/words")
+	if err != nil {
+		log.Fatal(err)
+	}
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	file.Close()
+
+	lex := NewLexer(bytes.NewReader(data), NewNode())
+
+	b.ResetTimer()
+
+	var i int
+	for ; lex.Lex(); i++ {
+	}
+
+	b.N = i
 
 }
 
