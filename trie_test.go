@@ -68,23 +68,82 @@ func TestAddNodeAndWalk(t *testing.T) {
 
 // func TestWaht(t *testing.T) {
 
-// 	var line = "three fLAgs have flagged \nin the fucking Flag "
+// 	file, err := os.Open("/usr/share/dict/words")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer file.Close()
 
-// 	lex := NewLexer(strings.NewReader(line), root)
+// 	root := NewNode()
+// 	err = LoadGrams(bufio.NewReader(file), root, 1, 1)
+
+// 	jsonfile, err := os.Open("/Users/jason/sample.log")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer file.Close()
+
+// 	lex := NewLexer(bufio.NewReader(jsonfile), root)
 // 	lex.CaseInsensitive = true
-// 	lex.EmitUnmatchedTokens = true
 
 // 	for lex.Lex() {
-// 		fmt.Printf("%#v\n", lex.Token())
+// 		if token := lex.Token(); token != nil && len(token.Text) > 1 {
+// 			fmt.Printf("Token: %s\n", token.Text)
+// 		}
 // 	}
 
-// 	if lex.Error() != nil {
-// 		log.Fatal(lex.Error())
+// 	if err := lex.Error(); err != nil {
+// 		t.Error(err)
 // 	}
 
 // 	os.Exit(0)
 
 // }
+
+func TestLoadGrams(t *testing.T) {
+
+	root := NewNode()
+	err := LoadGrams(strings.NewReader("one two three four five six seven"), root, 1, 4)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var expected = []string{
+		"one",
+		"one two",
+		"one two three",
+		"one two three four",
+		"two",
+		"two three",
+		"two three four",
+		"two three four five",
+		"three",
+		"three four",
+		"three four five",
+		"three four five six",
+		"four",
+		"four five",
+		"four five six",
+		"four five six seven",
+		"five",
+		"five six",
+		"five six seven",
+		"six",
+		"six seven",
+		"seven",
+	}
+
+	for _, term := range expected {
+		token, err := root.Search(term)
+		if err != nil {
+			t.Error(err)
+		}
+		if !token.Matched {
+			t.Errorf("expected matched on token: %s", term)
+		}
+	}
+
+}
 
 func TestSearch(t *testing.T) {
 
@@ -143,8 +202,8 @@ func TestSearch(t *testing.T) {
 		}
 	}
 
-	if lex.Error() != nil {
-		t.Error(lex.Error())
+	if err := lex.Error(); err != nil {
+		t.Error(err)
 	}
 
 }

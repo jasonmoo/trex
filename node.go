@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"errors"
+	"io"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -106,5 +108,48 @@ func (n *Node) search(line string, case_sensitive bool) (*Token, error) {
 	}
 
 	return nil, NonMatchError
+
+}
+
+func LoadGrams(r io.Reader, root *Node, n, nn int) error {
+
+	s := bufio.NewScanner(r)
+	s.Split(bufio.ScanWords)
+
+	grams := (nn - n) + 1
+	words := make([]string, grams)
+	pos := 0
+
+	for i, _ := range words {
+		s.Scan()
+		words[i] = s.Text()
+	}
+
+	if err := s.Err(); err != nil {
+		return err
+	}
+
+	for {
+
+		for i := 1; i <= len(words); i++ {
+			root.Add(NewToken(strings.Join(words[:i], " "), pos))
+			pos++
+		}
+
+		words = append([]string(nil), words[1:]...)
+
+		if s.Scan() {
+			words = append(words, s.Text())
+		} else if len(words) == 0 {
+			break
+		}
+
+	}
+
+	if err := s.Err(); err != nil {
+		return err
+	}
+
+	return nil
 
 }

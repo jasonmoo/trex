@@ -1,20 +1,22 @@
 === RUN TestAddNodeAndWalk
 --- PASS: TestAddNodeAndWalk (0.00 seconds)
+=== RUN TestLoadGrams
+--- PASS: TestLoadGrams (0.00 seconds)
 === RUN TestSearch
 --- PASS: TestSearch (0.00 seconds)
 === RUN TestSearchInsensitive
 --- PASS: TestSearchInsensitive (0.00 seconds)
 PASS
-BenchmarkLexerAllHit	  471771	       654 ns/op	      84 B/op	       3 allocs/op
-BenchmarkLexerAllMiss	 2493109	        76.1 ns/op	       8 B/op	       0 allocs/op
-BenchmarkSearch5	20000000	       100 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearch10	10000000	       170 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearch20	 5000000	       352 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearch40	 5000000	       674 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearch80	 1000000	      1419 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearchInsensitive5	10000000	       170 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearchInsensitive10	10000000	       241 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearchInsensitive20	 5000000	       413 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearchInsensitive40	 5000000	       720 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSearchInsensitive80	 1000000	      1470 ns/op	       0 B/op	       0 allocs/op
-ok  	github.com/jasonmoo/trex	40.471s
+BenchmarkLexerAllHit	  471771	       621 ns/op	      84 B/op	       3 allocs/op
+BenchmarkLexerAllMiss	 2493109	        71.3 ns/op	       8 B/op	       0 allocs/op
+BenchmarkSearch5	20000000	        96.5 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch10	10000000	       163 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch20	 5000000	       342 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch40	 5000000	       671 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearch80	 1000000	      1424 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive5	10000000	       164 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive10	10000000	       232 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive20	 5000000	       407 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive40	 5000000	       712 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSearchInsensitive80	 1000000	      1559 ns/op	       0 B/op	       0 allocs/op
+ok  	github.com/jasonmoo/trex	40.117s
