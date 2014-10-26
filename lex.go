@@ -111,6 +111,7 @@ RETURN:
 	// whatever we decided the term was, ensure that
 	// it's trimmed from teh buffer
 
+	// TODO: check cap for when to reset buffer size instead of each loop
 	if ct := utf8.RuneCountInString(term); len(l.buf) > ct {
 		l.buf = append([]rune(nil), l.buf[ct:]...) // new copy for protect mem leaks
 	} else if len(l.buf) == ct {

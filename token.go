@@ -4,6 +4,7 @@ type (
 	Token struct {
 		Matched  bool
 		Position int
+		Gram     int
 		Text     string
 		Flags    uint64
 	}

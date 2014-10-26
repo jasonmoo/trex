@@ -132,9 +132,12 @@ func LoadGrams(r io.Reader, root *Node, n, nn int) error {
 	for {
 
 		for i := 1; i <= len(words); i++ {
-			root.Add(NewToken(strings.Join(words[:i], " "), pos))
-			pos++
+			token := NewToken(strings.Join(words[:i], " "), pos)
+			token.Gram = i
+			root.Add(token)
 		}
+
+		pos++
 
 		words = append([]string(nil), words[1:]...)
 
